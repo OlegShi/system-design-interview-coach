@@ -1,5 +1,6 @@
 from app.domain.models import Event, Session
 from app.agents.planner_agent import run_planner_agent
+from app.agents.specifier_agent import run_specifier_agent
 
 def bootstrap_session(session: Session) -> Session:
     # system created
@@ -39,31 +40,8 @@ def bootstrap_session(session: Session) -> Session:
 
     # specify
     session.events.append(Event(type="specify_started", content="Defining problem statement and constraints"))
-    session.events.append(
-        Event(
-            type="specify_completed",
-            content="Problem specification defined",
-            payload={
-                "problem_statement": session.title,
-                "assumptions": {
-                    "qps": 1000,
-                    "read_write_ratio": "80/20",
-                    "average_payload_kb": 2,
-                    "availability_target": "99.9%",
-                    "region": "multi-region",
-                },
-                "non_functional_requirements": [
-                    "Low latency (<100ms p95)",
-                    "Horizontal scalability",
-                    "Graceful degradation under load",
-                ],
-                "constraints": [
-                    "Use commodity cloud infrastructure",
-                    "Assume eventual consistency is acceptable",
-                ],
-            },
-        )
-    )
+    session = run_specifier_agent(session)
+
     
      # plan
     session.events.append(Event(type="plan_started", content="Creating architecture plan outline"))

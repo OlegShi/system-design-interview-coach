@@ -63,10 +63,16 @@ export default function SessionDetailsPage() {
     );
   }
 
-  const filteredEvents =
+    const filteredEvents =
     filter === "all"
-      ? session.events
-      : session.events.filter((e) => e.type.startsWith(filter));
+        ? session.events
+        : session.events.filter((e) => {
+            if (filter === "specify") {
+            return e.type.startsWith("specify") || e.type.startsWith("specifier");
+            }
+            return e.type.startsWith(filter);
+        });
+
 
   return (
     <main className="min-h-screen p-10 max-w-4xl mx-auto">
