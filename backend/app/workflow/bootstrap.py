@@ -64,5 +64,39 @@ def bootstrap_session(session: Session) -> Session:
             },
         )
     )
+    
+     # plan
+    session.events.append(Event(type="plan_started", content="Creating architecture plan outline"))
+    session.events.append(
+        Event(
+            type="plan_completed",
+            content="Architecture plan outline created",
+            payload={
+                "sections": [
+                    "Requirements & constraints recap",
+                    "High-level architecture",
+                    "API design",
+                    "Data model",
+                    "Scaling strategy",
+                    "Caching strategy",
+                    "Consistency & transactions",
+                    "Failure modes & resilience",
+                    "Observability (metrics/logs/tracing)",
+                    "Security & privacy",
+                    "Cost considerations",
+                    "Tradeoffs and alternatives",
+                ],
+                "high_level_components": [
+                    {"name": "API Gateway", "responsibility": "Routing, auth, rate limiting"},
+                    {"name": "Core Service", "responsibility": "Business logic and orchestration"},
+                    {"name": "Database", "responsibility": "Durable state"},
+                    {"name": "Cache", "responsibility": "Hot data + rate limit counters"},
+                    {"name": "Queue", "responsibility": "Async processing and retries"},
+                    {"name": "Observability Stack", "responsibility": "Metrics, logs, traces"},
+                ],
+            },
+        )
+    )
+
 
     return session
