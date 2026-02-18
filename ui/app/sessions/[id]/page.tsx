@@ -8,6 +8,7 @@ type Event = {
   timestamp: string;
   type: string;
   content: string;
+  payload?: Record<string, unknown> | null;
 };
 
 type Session = {
@@ -23,6 +24,10 @@ export default function SessionDetailsPage() {
 
   const [session, setSession] = useState<Session | null>(null);
   const [error, setError] = useState("");
+
+  const [filter, setFilter] = useState<"all" | "constitution" | "specify" | "plan">(
+    "all"
+  );
 
   const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -58,6 +63,11 @@ export default function SessionDetailsPage() {
     );
   }
 
+  const filteredEvents =
+    filter === "all"
+      ? session.events
+      : session.events.filter((e) => e.type.startsWith(filter));
+
   return (
     <main className="min-h-screen p-10 max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold mb-2">{session.title}</h1>
@@ -67,14 +77,40 @@ export default function SessionDetailsPage() {
 
       <h2 className="text-xl font-semibold mb-4">Timeline</h2>
 
+      <div className="flex gap-2 mb-6">
+        {(["all", "constitution", "specify", "plan"] as const).map((f) => (
+          <button
+            key={f}
+            className={`border rounded px-3 py-1 text-sm ${
+              filter === f ? "bg-black text-white" : "bg-white"
+            }`}
+            onClick={() => setFilter(f)}
+          >
+            {f}
+          </button>
+        ))}
+      </div>
+
       <div className="space-y-3">
-        {session.events.map((e) => (
+        {filteredEvents.map((e) => (
           <div key={e.id} className="border rounded p-4">
             <div className="flex justify-between items-start gap-4">
               <div>
                 <div className="font-mono text-sm text-gray-600">{e.type}</div>
                 <div className="mt-1">{e.content}</div>
+
+                {e.payload && (
+                  <details className="mt-3">
+                    <summary className="cursor-pointer text-sm text-gray-600">
+                      Show payload
+                    </summary>
+                    <pre className="mt-2 text-xs bg-gray-50 border rounded p-3 overflow-auto">
+                      {JSON.stringify(e.payload, null, 2)}
+                    </pre>
+                  </details>
+                )}
               </div>
+
               <div className="text-xs text-gray-500 whitespace-nowrap">
                 {new Date(e.timestamp).toLocaleString()}
               </div>
