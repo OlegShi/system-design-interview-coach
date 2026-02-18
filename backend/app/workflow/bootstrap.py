@@ -1,5 +1,5 @@
 from app.domain.models import Event, Session
-
+from app.skills.plan_skill import generate_plan_outline
 
 def bootstrap_session(session: Session) -> Session:
     # system created
@@ -66,35 +66,13 @@ def bootstrap_session(session: Session) -> Session:
     )
     
      # plan
-    session.events.append(Event(type="plan_started", content="Creating architecture plan outline"))
+    plan_payload = generate_plan_outline(session.title)
+
     session.events.append(
         Event(
             type="plan_completed",
             content="Architecture plan outline created",
-            payload={
-                "sections": [
-                    "Requirements & constraints recap",
-                    "High-level architecture",
-                    "API design",
-                    "Data model",
-                    "Scaling strategy",
-                    "Caching strategy",
-                    "Consistency & transactions",
-                    "Failure modes & resilience",
-                    "Observability (metrics/logs/tracing)",
-                    "Security & privacy",
-                    "Cost considerations",
-                    "Tradeoffs and alternatives",
-                ],
-                "high_level_components": [
-                    {"name": "API Gateway", "responsibility": "Routing, auth, rate limiting"},
-                    {"name": "Core Service", "responsibility": "Business logic and orchestration"},
-                    {"name": "Database", "responsibility": "Durable state"},
-                    {"name": "Cache", "responsibility": "Hot data + rate limit counters"},
-                    {"name": "Queue", "responsibility": "Async processing and retries"},
-                    {"name": "Observability Stack", "responsibility": "Metrics, logs, traces"},
-                ],
-            },
+            payload=plan_payload,
         )
     )
 
