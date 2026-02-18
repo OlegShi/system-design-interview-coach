@@ -1,5 +1,5 @@
 from app.domain.models import Event, Session
-from app.skills.plan_skill import generate_plan_outline
+from app.agents.planner_agent import run_planner_agent
 
 def bootstrap_session(session: Session) -> Session:
     # system created
@@ -66,15 +66,8 @@ def bootstrap_session(session: Session) -> Session:
     )
     
      # plan
-    plan_payload = generate_plan_outline(session.title)
-
-    session.events.append(
-        Event(
-            type="plan_completed",
-            content="Architecture plan outline created",
-            payload=plan_payload,
-        )
-    )
+    session.events.append(Event(type="plan_started", content="Creating architecture plan outline"))
+    session = run_planner_agent(session)
 
 
     return session
