@@ -83,7 +83,9 @@ export default function SessionsPage() {
           <div key={s.id} className="border rounded p-4">
             <div className="flex justify-between items-center">
               <div>
-                <div className="font-semibold">{s.title}</div>
+                <a className="font-semibold underline" href={`/sessions/${s.id}`}>
+                {s.title}
+                </a>
                 <div className="text-sm text-gray-500">
                   {new Date(s.created_at).toLocaleString()}
                 </div>
