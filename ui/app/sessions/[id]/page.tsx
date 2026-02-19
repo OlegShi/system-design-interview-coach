@@ -31,6 +31,9 @@ export default function SessionDetailsPage() {
 
   const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL;
 
+  const [draftAnswers, setDraftAnswers] = useState<Record<string, string>>({});
+
+
   const runSession = async () => {
     setError("");
     try {
@@ -42,6 +45,32 @@ export default function SessionDetailsPage() {
       setSession(data);
     } catch (e) {
       setError("Failed to run session");
+    }
+  };
+
+  const submitAnswer = async (taskId: string) => {
+    const answer = (draftAnswers[taskId] ?? "").trim();
+    if (!answer) return;
+
+    setError("");
+    try {
+      const res = await fetch(`${apiBase}/sessions/${sessionId}/answers`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ task_id: taskId, answer }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = (await res.json()) as Session;
+      setSession(data);
+
+      // clear draft
+      setDraftAnswers((prev) => {
+        const copy = { ...prev };
+        delete copy[taskId];
+        return copy;
+      });
+    } catch (e) {
+      setError("Failed to submit answer");
     }
   };
 
@@ -177,6 +206,24 @@ export default function SessionDetailsPage() {
                               Category: {task.category}
                             </div>
                             <div>{task.question}</div>
+                            <div className="mt-3 flex gap-2">
+                            <textarea
+                                className="border rounded p-2 w-full text-sm"
+                                rows={3}
+                                placeholder="Write your answer..."
+                                value={draftAnswers[task.id] ?? ""}
+                                onChange={(ev) =>
+                                setDraftAnswers((prev) => ({ ...prev, [task.id]: ev.target.value }))
+                                }
+                            />
+                            <button
+                                className="bg-black text-white rounded px-3 py-2 text-sm h-fit"
+                                onClick={() => submitAnswer(task.id)}
+                                disabled={!(draftAnswers[task.id] ?? "").trim()}
+                            >
+                                Submit
+                            </button>
+                            </div>
                           </div>
                         ))}
                       </div>
