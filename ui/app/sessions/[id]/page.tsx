@@ -117,7 +117,19 @@ export default function SessionDetailsPage() {
                     Show payload
                     </summary>
 
-                    {"instructions_md" in e.payload ? (
+                    {e.type === "task_generator_agent_completed" && "tasks" in e.payload ? (
+                    <div className="mt-4 space-y-3">
+                        {(e.payload as any).tasks.map((task: any) => (
+                        <div key={task.id} className="border rounded p-4 bg-gray-50">
+                            <div className="font-semibold">{task.title}</div>
+                            <div className="text-sm text-gray-500 mb-2">
+                            Category: {task.category}
+                            </div>
+                            <div>{task.question}</div>
+                        </div>
+                        ))}
+                    </div>
+                    ) : "instructions_md" in e.payload ? (
                     <div className="mt-2 text-sm bg-gray-50 border rounded p-4 whitespace-pre-wrap">
                         {(e.payload as any).instructions_md}
                     </div>
