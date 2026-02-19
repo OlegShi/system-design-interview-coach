@@ -2,6 +2,7 @@ from app.domain.models import Event, Session
 from app.agents.planner_agent import run_planner_agent
 from app.agents.specifier_agent import run_specifier_agent
 from app.agents.task_generator_agent import run_task_generator_agent
+from app.agents.scorer_agent import run_scorer_agent
 
 def bootstrap_session(session: Session) -> Session:
     # system created
@@ -51,5 +52,9 @@ def bootstrap_session(session: Session) -> Session:
     # tasks
     session.events.append(Event(type="tasks_started", content="Generating interview tasks"))
     session = run_task_generator_agent(session)
+    
+    # scoring
+    session.events.append(Event(type="scoring_started", content="Scoring initial session state"))
+    session = run_scorer_agent(session)
 
     return session

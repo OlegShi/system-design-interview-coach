@@ -26,7 +26,8 @@ export default function SessionDetailsPage() {
   const [error, setError] = useState("");
 
     const [filter, setFilter] = useState<
-    "all" | "constitution" | "specify" | "plan" | "tasks"
+    "all" | "constitution" | "specify" | "plan" | "tasks" | "scoring"
+
     >("all");
 
 
@@ -77,6 +78,9 @@ export default function SessionDetailsPage() {
           if (filter === "tasks") {
             return e.type.startsWith("tasks") || e.type.startsWith("task_generator");
           }
+          if (filter === "scoring") {
+            return e.type.startsWith("scoring") || e.type.startsWith("scorer");
+            }
           return e.type.startsWith(filter);
         });
 
@@ -91,7 +95,7 @@ export default function SessionDetailsPage() {
       <h2 className="text-xl font-semibold mb-4">Timeline</h2>
 
       <div className="flex gap-2 mb-6">
-        {(["all", "constitution", "specify", "plan", "tasks"] as const).map((f) => (
+        {(["all", "constitution", "specify", "plan", "tasks", "scoring"] as const).map((f) => (
           <button
             key={f}
             className={`border rounded px-3 py-1 text-sm ${
@@ -111,35 +115,66 @@ export default function SessionDetailsPage() {
               <div>
                 <div className="font-mono text-sm text-gray-600">{e.type}</div>
                 <div className="mt-1">{e.content}</div>
-                {e.payload && (
-                <details className="mt-3">
-                    <summary className="cursor-pointer text-sm text-gray-600">
-                    Show payload
-                    </summary>
+            {e.payload && (
+            <details className="mt-3">
+                <summary className="cursor-pointer text-sm text-gray-600">
+                Show payload
+                </summary>
 
-                    {e.type === "task_generator_agent_completed" && "tasks" in e.payload ? (
-                    <div className="mt-4 space-y-3">
-                        {(e.payload as any).tasks.map((task: any) => (
-                        <div key={task.id} className="border rounded p-4 bg-gray-50">
-                            <div className="font-semibold">{task.title}</div>
-                            <div className="text-sm text-gray-500 mb-2">
-                            Category: {task.category}
-                            </div>
-                            <div>{task.question}</div>
+                {/* TASKS */}
+                {e.type === "task_generator_agent_completed" && "tasks" in e.payload ? (
+                <div className="mt-4 space-y-3">
+                    {(e.payload as any).tasks.map((task: any) => (
+                    <div key={task.id} className="border rounded p-4 bg-gray-50">
+                        <div className="font-semibold">{task.title}</div>
+                        <div className="text-sm text-gray-500 mb-2">
+                        Category: {task.category}
                         </div>
-                        ))}
+                        <div>{task.question}</div>
                     </div>
-                    ) : "instructions_md" in e.payload ? (
-                    <div className="mt-2 text-sm bg-gray-50 border rounded p-4 whitespace-pre-wrap">
-                        {(e.payload as any).instructions_md}
-                    </div>
-                    ) : (
-                    <pre className="mt-2 text-xs bg-gray-50 border rounded p-3 overflow-x-auto whitespace-pre-wrap break-words">
-                        {JSON.stringify(e.payload, null, 2)}
-                    </pre>
+                    ))}
+                </div>
+                ) : e.type === "scorer_agent_completed" && "rubric_scores" in e.payload ? (
+                <div className="mt-4 space-y-4">
+                    {Object.entries((e.payload as any).rubric_scores).map(
+                    ([key, value]: any) => (
+                        <div key={key}>
+                        <div className="flex justify-between text-sm mb-1">
+                            <span className="capitalize">{key.replace("_", " ")}</span>
+                            <span>{value} / 5</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded h-2">
+                            <div
+                            className="bg-black h-2 rounded"
+                            style={{ width: `${(value / 5) * 100}%` }}
+                            />
+                        </div>
+                        </div>
+                    )
                     )}
-                </details>
+
+                    <div className="mt-4 border-t pt-3">
+                    <div className="font-semibold">
+                        Overall Score: {(e.payload as any).overall_score} /{" "}
+                        {(e.payload as any).max_score}
+                    </div>
+                    <div className="text-sm text-gray-600 mt-1">
+                        {(e.payload as any).feedback}
+                    </div>
+                    </div>
+                </div>
+                ) : "instructions_md" in e.payload ? (
+                <div className="mt-2 text-sm bg-gray-50 border rounded p-4 whitespace-pre-wrap">
+                    {(e.payload as any).instructions_md}
+                </div>
+                ) : (
+                <pre className="mt-2 text-xs bg-gray-50 border rounded p-3 overflow-x-auto whitespace-pre-wrap break-words">
+                    {JSON.stringify(e.payload, null, 2)}
+                </pre>
                 )}
+            </details>
+            )}
+
               </div>
               <div className="text-xs text-gray-500 whitespace-nowrap">
                 {new Date(e.timestamp).toLocaleString()}
