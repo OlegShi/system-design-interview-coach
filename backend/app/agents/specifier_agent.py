@@ -1,5 +1,6 @@
 from app.domain.models import Event, Session
 from app.skills.assumptions_skill import generate_default_assumptions
+from app.agents.agent_loader import load_instructions
 
 
 def run_specifier_agent(session: Session) -> Session:
@@ -8,7 +9,14 @@ def run_specifier_agent(session: Session) -> Session:
     Today: deterministic assumptions + canned requirements.
     Later: LLM reasoning + MCP question bank + user-specific constraints.
     """
-    session.events.append(Event(type="specifier_agent_started", content="Specifier agent running"))
+    instructions = load_instructions("specifier/instructions.md")
+    session.events.append(
+        Event(
+            type="specifier_agent_started",
+            content="Specifier agent running",
+            payload={"instructions_md": instructions},
+        )
+    )
 
     assumptions = generate_default_assumptions(session.title)
 

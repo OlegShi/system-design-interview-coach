@@ -104,19 +104,24 @@ export default function SessionDetailsPage() {
               <div>
                 <div className="font-mono text-sm text-gray-600">{e.type}</div>
                 <div className="mt-1">{e.content}</div>
-
                 {e.payload && (
-                  <details className="mt-3">
+                <details className="mt-3">
                     <summary className="cursor-pointer text-sm text-gray-600">
-                      Show payload
+                    Show payload
                     </summary>
-                    <pre className="mt-2 text-xs bg-gray-50 border rounded p-3 overflow-auto">
-                      {JSON.stringify(e.payload, null, 2)}
+
+                    {"instructions_md" in e.payload ? (
+                    <div className="mt-2 text-sm bg-gray-50 border rounded p-4 whitespace-pre-wrap">
+                        {(e.payload as any).instructions_md}
+                    </div>
+                    ) : (
+                    <pre className="mt-2 text-xs bg-gray-50 border rounded p-3 overflow-x-auto whitespace-pre-wrap break-words">
+                        {JSON.stringify(e.payload, null, 2)}
                     </pre>
-                  </details>
+                    )}
+                </details>
                 )}
               </div>
-
               <div className="text-xs text-gray-500 whitespace-nowrap">
                 {new Date(e.timestamp).toLocaleString()}
               </div>
