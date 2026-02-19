@@ -25,13 +25,25 @@ export default function SessionDetailsPage() {
   const [session, setSession] = useState<Session | null>(null);
   const [error, setError] = useState("");
 
-    const [filter, setFilter] = useState<
+  const [filter, setFilter] = useState<
     "all" | "constitution" | "specify" | "plan" | "tasks" | "scoring"
-
-    >("all");
-
+  >("all");
 
   const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+  const runSession = async () => {
+    setError("");
+    try {
+      const res = await fetch(`${apiBase}/sessions/${sessionId}/run`, {
+        method: "POST",
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = (await res.json()) as Session;
+      setSession(data);
+    } catch (e) {
+      setError("Failed to run session");
+    }
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -70,32 +82,47 @@ export default function SessionDetailsPage() {
       ? session.events
       : session.events.filter((e) => {
           if (filter === "specify") {
-            return e.type.startsWith("specify") || e.type.startsWith("specifier");
+            return (
+              e.type.startsWith("specify") || e.type.startsWith("specifier")
+            );
           }
           if (filter === "plan") {
             return e.type.startsWith("plan") || e.type.startsWith("planner");
           }
           if (filter === "tasks") {
-            return e.type.startsWith("tasks") || e.type.startsWith("task_generator");
+            return (
+              e.type.startsWith("tasks") ||
+              e.type.startsWith("task_generator")
+            );
           }
           if (filter === "scoring") {
             return e.type.startsWith("scoring") || e.type.startsWith("scorer");
-            }
+          }
           return e.type.startsWith(filter);
         });
-
 
   return (
     <main className="min-h-screen p-10 max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold mb-2">{session.title}</h1>
-      <div className="text-sm text-gray-500 mb-8">
+      <div className="text-sm text-gray-500 mb-4">
         Created: {new Date(session.created_at).toLocaleString()}
+      </div>
+
+      <div className="mb-6">
+        <button
+          className="bg-black text-white rounded px-4 py-2"
+          onClick={runSession}
+        >
+          Run Session
+        </button>
       </div>
 
       <h2 className="text-xl font-semibold mb-4">Timeline</h2>
 
       <div className="flex gap-2 mb-6">
-        {(["all", "constitution", "specify", "plan", "tasks", "scoring"] as const).map((f) => (
+        {(
+          ["all", "constitution", "specify", "plan", "tasks", "scoring"] as const
+        ).map((f) => (
           <button
             key={f}
             className={`border rounded px-3 py-1 text-sm ${
@@ -115,67 +142,75 @@ export default function SessionDetailsPage() {
               <div>
                 <div className="font-mono text-sm text-gray-600">{e.type}</div>
                 <div className="mt-1">{e.content}</div>
-            {e.payload && (
-            <details className="mt-3">
-                <summary className="cursor-pointer text-sm text-gray-600">
-                Show payload
-                </summary>
 
-                {/* TASKS */}
-                {e.type === "task_generator_agent_completed" && "tasks" in e.payload ? (
-                <div className="mt-4 space-y-3">
-                    {(e.payload as any).tasks.map((task: any) => (
-                    <div key={task.id} className="border rounded p-4 bg-gray-50">
-                        <div className="font-semibold">{task.title}</div>
-                        <div className="text-sm text-gray-500 mb-2">
-                        Category: {task.category}
+                {e.payload && (
+                  <details className="mt-3">
+                    <summary className="cursor-pointer text-sm text-gray-600">
+                      Show payload
+                    </summary>
+
+                    {/* TASKS */}
+                    {e.type === "task_generator_agent_completed" &&
+                    "tasks" in e.payload ? (
+                      <div className="mt-4 space-y-3">
+                        {(e.payload as any).tasks.map((task: any) => (
+                          <div
+                            key={task.id}
+                            className="border rounded p-4 bg-gray-50"
+                          >
+                            <div className="font-semibold">{task.title}</div>
+                            <div className="text-sm text-gray-500 mb-2">
+                              Category: {task.category}
+                            </div>
+                            <div>{task.question}</div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : e.type === "scorer_agent_completed" &&
+                      "rubric_scores" in e.payload ? (
+                      <div className="mt-4 space-y-4">
+                        {Object.entries((e.payload as any).rubric_scores).map(
+                          ([key, value]: any) => (
+                            <div key={key}>
+                              <div className="flex justify-between text-sm mb-1">
+                                <span className="capitalize">
+                                  {String(key).replace("_", " ")}
+                                </span>
+                                <span>{value} / 5</span>
+                              </div>
+                              <div className="w-full bg-gray-200 rounded h-2">
+                                <div
+                                  className="bg-black h-2 rounded"
+                                  style={{ width: `${(value / 5) * 100}%` }}
+                                />
+                              </div>
+                            </div>
+                          )
+                        )}
+
+                        <div className="mt-4 border-t pt-3">
+                          <div className="font-semibold">
+                            Overall Score: {(e.payload as any).overall_score} /{" "}
+                            {(e.payload as any).max_score}
+                          </div>
+                          <div className="text-sm text-gray-600 mt-1">
+                            {(e.payload as any).feedback}
+                          </div>
                         </div>
-                        <div>{task.question}</div>
-                    </div>
-                    ))}
-                </div>
-                ) : e.type === "scorer_agent_completed" && "rubric_scores" in e.payload ? (
-                <div className="mt-4 space-y-4">
-                    {Object.entries((e.payload as any).rubric_scores).map(
-                    ([key, value]: any) => (
-                        <div key={key}>
-                        <div className="flex justify-between text-sm mb-1">
-                            <span className="capitalize">{key.replace("_", " ")}</span>
-                            <span>{value} / 5</span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded h-2">
-                            <div
-                            className="bg-black h-2 rounded"
-                            style={{ width: `${(value / 5) * 100}%` }}
-                            />
-                        </div>
-                        </div>
-                    )
+                      </div>
+                    ) : "instructions_md" in e.payload ? (
+                      <div className="mt-2 text-sm bg-gray-50 border rounded p-4 whitespace-pre-wrap">
+                        {(e.payload as any).instructions_md}
+                      </div>
+                    ) : (
+                      <pre className="mt-2 text-xs bg-gray-50 border rounded p-3 overflow-x-auto whitespace-pre-wrap break-words">
+                        {JSON.stringify(e.payload, null, 2)}
+                      </pre>
                     )}
-
-                    <div className="mt-4 border-t pt-3">
-                    <div className="font-semibold">
-                        Overall Score: {(e.payload as any).overall_score} /{" "}
-                        {(e.payload as any).max_score}
-                    </div>
-                    <div className="text-sm text-gray-600 mt-1">
-                        {(e.payload as any).feedback}
-                    </div>
-                    </div>
-                </div>
-                ) : "instructions_md" in e.payload ? (
-                <div className="mt-2 text-sm bg-gray-50 border rounded p-4 whitespace-pre-wrap">
-                    {(e.payload as any).instructions_md}
-                </div>
-                ) : (
-                <pre className="mt-2 text-xs bg-gray-50 border rounded p-3 overflow-x-auto whitespace-pre-wrap break-words">
-                    {JSON.stringify(e.payload, null, 2)}
-                </pre>
+                  </details>
                 )}
-            </details>
-            )}
-
               </div>
+
               <div className="text-xs text-gray-500 whitespace-nowrap">
                 {new Date(e.timestamp).toLocaleString()}
               </div>
