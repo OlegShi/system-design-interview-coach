@@ -16,6 +16,10 @@ store = InMemorySessionStore()
 
 class CreateSessionRequest(BaseModel):
     title: str
+    
+class SubmitAnswerRequest(BaseModel):
+    task_id: str
+    answer: str
 
 
 @router.post("", response_model=Session)
@@ -48,5 +52,23 @@ def run_session(session_id: UUID) -> Session:
 
     store.create(session)  # overwrite
     return session
+
+@router.post("/{session_id}/answers", response_model=Session)
+def submit_answer(session_id: UUID, req: SubmitAnswerRequest) -> Session:
+    session = store.get(session_id)
+    if session is None:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    session.events.append(
+        Event(
+            type="answer_submitted",
+            content=f"Answer submitted for task: {req.task_id}",
+            payload={"task_id": req.task_id, "answer": req.answer},
+        )
+    )
+
+    store.create(session)
+    return session
+
 
 
