@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List
+from typing import Any, Dict, List, Optional
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, Field
@@ -10,6 +10,7 @@ class Event(BaseModel):
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     type: str
     content: str
+    payload: Optional[Dict[str, Any]] = None
 
 
 class Session(BaseModel):
