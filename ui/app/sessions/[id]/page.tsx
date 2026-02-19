@@ -25,9 +25,10 @@ export default function SessionDetailsPage() {
   const [session, setSession] = useState<Session | null>(null);
   const [error, setError] = useState("");
 
-  const [filter, setFilter] = useState<"all" | "constitution" | "specify" | "plan">(
-    "all"
-  );
+    const [filter, setFilter] = useState<
+    "all" | "constitution" | "specify" | "plan" | "tasks"
+    >("all");
+
 
   const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -63,14 +64,20 @@ export default function SessionDetailsPage() {
     );
   }
 
-    const filteredEvents =
+  const filteredEvents =
     filter === "all"
-        ? session.events
-        : session.events.filter((e) => {
-            if (filter === "specify") {
+      ? session.events
+      : session.events.filter((e) => {
+          if (filter === "specify") {
             return e.type.startsWith("specify") || e.type.startsWith("specifier");
-            }
-            return e.type.startsWith(filter);
+          }
+          if (filter === "plan") {
+            return e.type.startsWith("plan") || e.type.startsWith("planner");
+          }
+          if (filter === "tasks") {
+            return e.type.startsWith("tasks") || e.type.startsWith("task_generator");
+          }
+          return e.type.startsWith(filter);
         });
 
 
@@ -84,7 +91,7 @@ export default function SessionDetailsPage() {
       <h2 className="text-xl font-semibold mb-4">Timeline</h2>
 
       <div className="flex gap-2 mb-6">
-        {(["all", "constitution", "specify", "plan"] as const).map((f) => (
+        {(["all", "constitution", "specify", "plan", "tasks"] as const).map((f) => (
           <button
             key={f}
             className={`border rounded px-3 py-1 text-sm ${
