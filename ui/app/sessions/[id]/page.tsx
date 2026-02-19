@@ -101,6 +101,15 @@ export default function SessionDetailsPage() {
           return e.type.startsWith(filter);
         });
 
+  const hasEvent = (type: string) => session.events.some((e) => e.type === type);
+
+  const nextStepLabel = !hasEvent("task_generator_agent_completed")
+    ? "Next: Generate Tasks"
+    : !hasEvent("scorer_agent_completed")
+    ? "Next: Score Session"
+    : "Complete";
+
+
   return (
     <main className="min-h-screen p-10 max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold mb-2">{session.title}</h1>
@@ -108,14 +117,19 @@ export default function SessionDetailsPage() {
         Created: {new Date(session.created_at).toLocaleString()}
       </div>
 
-      <div className="mb-6">
-        <button
-          className="bg-black text-white rounded px-4 py-2"
-          onClick={runSession}
-        >
-          Run Session
-        </button>
-      </div>
+    <div className="mb-6 flex items-center gap-3">
+    <button
+        className="bg-black text-white rounded px-4 py-2 disabled:opacity-50"
+        onClick={runSession}
+        disabled={nextStepLabel === "Complete"}
+        title={nextStepLabel === "Complete" ? "No pending steps" : nextStepLabel}
+    >
+        Run Session
+    </button>
+
+    <div className="text-sm text-gray-600">{nextStepLabel}</div>
+    </div>
+
 
       <h2 className="text-xl font-semibold mb-4">Timeline</h2>
 
