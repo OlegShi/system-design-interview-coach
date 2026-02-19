@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from app.domain.models import Event, Session
 from app.domain.store import InMemorySessionStore
 from app.workflow.bootstrap import bootstrap_session
+from app.workflow.runner import run_next_steps
 
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
@@ -42,12 +43,10 @@ def run_session(session_id: UUID) -> Session:
     if session is None:
         raise HTTPException(status_code=404, detail="Session not found")
 
-    # For now: just append a marker event to prove we can "run" later steps
     session.events.append(Event(type="run_requested", content="Run requested by user"))
+    session = run_next_steps(session)
 
-    # Later: this will call a state machine / next-step runner
-    # session = run_next_steps(session)
-
-    store.create(session)  # overwrite in store
+    store.create(session)  # overwrite
     return session
+
 
