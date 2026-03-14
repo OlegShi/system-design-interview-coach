@@ -2,8 +2,6 @@
 
 An AI-powered coaching tool that guides candidates through system design interviews using a multi-agent architecture, event-driven timeline, and structured rubric scoring.
 
-Built as a portfolio project demonstrating backend architecture, AI-agent workflows, event-driven design, modular skills/tools patterns, and clean UI visualization.
-
 ---
 
 ## Demo Flow
@@ -202,7 +200,3 @@ system-design-interview-coach/
 - **Authentication** — user accounts and session history
 
 ---
-
-## License
-
-This project is for portfolio / educational purposes.
